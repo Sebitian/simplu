@@ -1,5 +1,4 @@
 import React from 'react';
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -108,7 +107,7 @@ const workouts = [
 ];
 
 export default async function WorkoutsPage() {
-  const supabase = await createClient();
+//   const supabase = await createClient();
   
   // You can add authentication check here if needed
   // const { data, error } = await supabase.auth.getClaims();

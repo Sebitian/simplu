@@ -5,11 +5,8 @@ import {
   Search, 
   Settings, 
   ChevronDown,
-  Users,
   FileText,
   BarChart3,
-  Shield,
-  Cog
 } from "lucide-react"
 import Link from "next/link"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible"
