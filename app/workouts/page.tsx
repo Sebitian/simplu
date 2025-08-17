@@ -40,11 +40,62 @@ import {
   Plus,
   Activity
 } from 'lucide-react';
+import { WorkoutStep } from '@/types/workout';
+// Import the sleep data statically
+import sleepDataJson from '@/garmin/sebastian/DI_CONNECT/DI-Connect-Wellness/2025-04-13_2025-07-22_129258466_sleepData.json';
+
+// Define interfaces for sleep data
+interface SleepScores {
+  overallScore: number;
+  qualityScore: number;
+  durationScore: number;
+  recoveryScore: number;
+  deepScore?: number;
+  remScore?: number;
+  lightScore?: number;
+  awakeningsCountScore?: number;
+  awakeTimeScore?: number;
+  combinedAwakeScore?: number;
+  restfulnessScore?: number;
+  interruptionsScore?: number;
+  feedback: string;
+  insight: string;
+}
+
+interface SleepEntry {
+  calendarDate?: string;
+  sleepScores?: SleepScores;
+  retro?: boolean;
+  sleepStartTimestampGMT?: string;
+  sleepEndTimestampGMT?: string;
+  sleepWindowConfirmationType?: string;
+  deepSleepSeconds?: number;
+  lightSleepSeconds?: number;
+  remSleepSeconds?: number;
+  awakeSleepSeconds?: number;
+  unmeasurableSeconds?: number;
+  averageRespiration?: number;
+  lowestRespiration?: number;
+  highestRespiration?: number;
+  awakeCount?: number;
+  avgSleepStress?: number;
+  restlessMomentCount?: number;
+}
+
+interface ProcessedSleepEntry {
+  date: string;
+  overallScore: number;
+  qualityScore: number;
+  durationScore: number;
+  recoveryScore: number;
+  feedback: string;
+  insight: string;
+}
 
 interface DatabaseWorkout {
   id: number;
   workout_name: string;
-  steps: any[];
+  steps: WorkoutStep[];
   created_at: string;
 }
 
@@ -58,49 +109,31 @@ interface UIWorkout {
 }
 
 // Function to parse Garmin sleep data and extract overall scores
-function parseSleepData() {
-  // Import the sleep data (you'll need to import this JSON file)
-  const sleepData = require('@/garmin/sebastian/DI_CONNECT/DI-Connect-Wellness/2025-04-13_2025-07-22_129258466_sleepData.json');
+function parseSleepData(): ProcessedSleepEntry[] {
+  const sleepData = sleepDataJson as SleepEntry[];
   
   const sleepScores = sleepData
-    .filter((entry: any) => entry.sleepScores && entry.calendarDate) // Filter out entries without sleep scores
-    .map((entry: any) => ({
-      date: entry.calendarDate,
-      overallScore: entry.sleepScores.overallScore,
-      qualityScore: entry.sleepScores.qualityScore,
-      durationScore: entry.sleepScores.durationScore,
-      recoveryScore: entry.sleepScores.recoveryScore,
-      feedback: entry.sleepScores.feedback,
-      insight: entry.sleepScores.insight
+    .filter((entry: SleepEntry) => entry.sleepScores && entry.calendarDate) // Filter out entries without sleep scores
+    .map((entry: SleepEntry) => ({
+      date: entry.calendarDate!,
+      overallScore: entry.sleepScores!.overallScore,
+      qualityScore: entry.sleepScores!.qualityScore,
+      durationScore: entry.sleepScores!.durationScore,
+      recoveryScore: entry.sleepScores!.recoveryScore,
+      feedback: entry.sleepScores!.feedback,
+      insight: entry.sleepScores!.insight
     }))
-    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
+    .sort((a: ProcessedSleepEntry, b: ProcessedSleepEntry) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
   
   return sleepScores;
 }
 
-// Function to get score color based on value
-function getScoreColor(score: number): string {
-  if (score >= 80) return 'bg-green-500';
-  if (score >= 60) return 'bg-yellow-500';
-  if (score >= 40) return 'bg-orange-500';
-  return 'bg-red-500';
-}
-
-// Function to format date nicely
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-}
-
 // Function to log sleep scores to the console
-function logSleepScores() {
+function logSleepScores(): void {
   const sleepScores = parseSleepData();
   console.log('Sleep Scores Summary:');
   console.log('===================');
-  sleepScores.forEach((entry: any) => {
+  sleepScores.forEach((entry: ProcessedSleepEntry) => {
     console.log(`${entry.date}: Overall Score ${entry.overallScore} - ${entry.insight}`);
   });
 }
@@ -162,14 +195,6 @@ export default function WorkoutsPage() {
   // if (error || !data?.claims) {
   //   redirect("/auth/login");
   // }
-
-  // Get sleep data
-  const sleepScores = parseSleepData();
-  
-  // Calculate some basic stats
-  const avgOverallScore = sleepScores.reduce((sum: number, entry: any) => sum + entry.overallScore, 0) / sleepScores.length;
-  const maxScore = Math.max(...sleepScores.map((entry: any) => entry.overallScore));
-  const minScore = Math.min(...sleepScores.map((entry: any) => entry.overallScore));
 
   // Function to handle create workout button click
   const handleCreateWorkout = () => {
