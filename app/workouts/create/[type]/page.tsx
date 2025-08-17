@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,14 +10,12 @@ import { WorkoutStep } from '@/types/workout';
 import { createClient } from '@/lib/supabase/client';
 
 export default function CreateWorkoutPage() {
-  const params = useParams();
   const router = useRouter();
-  const workoutType = params.type as string;
   
   const [workoutTitle, setWorkoutTitle] = useState('Strength Workout');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [workoutSteps, setWorkoutSteps] = useState<WorkoutStep[]>([
+  const [workoutSteps] = useState<WorkoutStep[]>([
     {
       exercise_id: 3,
       exercise_name: 'Squat',
@@ -25,12 +23,6 @@ export default function CreateWorkoutPage() {
       order_index: 1
     }
   ]);
-
-  // Function to format workout type for display
-  const formatWorkoutType = (type: string) => {
-    if (type === 'strength_training') return 'Strength Training';
-    return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
-  };
 
   // Function to go back to workouts page
   const handleGoBack = () => {
@@ -79,7 +71,7 @@ export default function CreateWorkoutPage() {
         }))
       };
       
-      const { data: workout, error } = await supabase
+      const { error } = await supabase
         .from('workouts_table')
         .insert(workoutData)
         .select()

@@ -1,25 +1,52 @@
 import { google } from '@ai-sdk/google';
 import { convertToModelMessages, streamText, UIMessage } from 'ai';
 import { createClient } from '@/lib/supabase/server';
+// Import the sleep data statically
+import sleepDataJson from '@/garmin/sebastian/DI_CONNECT/DI-Connect-Wellness/2025-04-13_2025-07-22_129258466_sleepData.json';
 
 export const maxDuration = 30;
 
-function parseSleepData() {
-    // Import the sleep data (you'll need to import this JSON file)
-    const sleepData = require('@/garmin/sebastian/DI_CONNECT/DI-Connect-Wellness/2025-04-13_2025-07-22_129258466_sleepData.json');
+// Define interfaces for sleep data (same as in workouts page)
+interface SleepScores {
+  overallScore: number;
+  qualityScore: number;
+  durationScore: number;
+  recoveryScore: number;
+  feedback: string;
+  insight: string;
+}
+
+interface SleepEntry {
+  calendarDate?: string;
+  sleepScores?: SleepScores;
+  retro?: boolean;
+}
+
+interface ProcessedSleepEntry {
+  date: string;
+  overallScore: number;
+  qualityScore: number;
+  durationScore: number;
+  recoveryScore: number;
+  feedback: string;
+  insight: string;
+}
+
+function parseSleepData(): ProcessedSleepEntry[] {
+    const sleepData = sleepDataJson as SleepEntry[];
     
     const sleepScores = sleepData
-      .filter((entry: any) => entry.sleepScores && entry.calendarDate) // Filter out entries without sleep scores
-      .map((entry: any) => ({
-        date: entry.calendarDate,
-        overallScore: entry.sleepScores.overallScore,
-        qualityScore: entry.sleepScores.qualityScore,
-        durationScore: entry.sleepScores.durationScore,
-        recoveryScore: entry.sleepScores.recoveryScore,
-        feedback: entry.sleepScores.feedback,
-        insight: entry.sleepScores.insight
+      .filter((entry: SleepEntry) => entry.sleepScores && entry.calendarDate) // Filter out entries without sleep scores
+      .map((entry: SleepEntry) => ({
+        date: entry.calendarDate!,
+        overallScore: entry.sleepScores!.overallScore,
+        qualityScore: entry.sleepScores!.qualityScore,
+        durationScore: entry.sleepScores!.durationScore,
+        recoveryScore: entry.sleepScores!.recoveryScore,
+        feedback: entry.sleepScores!.feedback,
+        insight: entry.sleepScores!.insight
       }))
-      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
+      .sort((a: ProcessedSleepEntry, b: ProcessedSleepEntry) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
     
     return sleepScores;
   }
@@ -83,7 +110,7 @@ export async function POST(req: Request) {
         try {
             const sleepScores = parseSleepData();
 
-            const formattedSleepData = sleepScores.map((score: { date: any; overallScore: any; }) => 
+            const formattedSleepData = sleepScores.map((score: ProcessedSleepEntry) => 
                 `Date: ${score.date} | Overall Score: ${score.overallScore}/100`
             ).join('\n');
 
