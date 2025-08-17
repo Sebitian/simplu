@@ -1,0 +1,232 @@
+'use client'
+
+import React, { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Edit3, Info, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
+import { WorkoutStep } from '@/types/workout';
+import { createClient } from '@/lib/supabase/client';
+
+export default function CreateWorkoutPage() {
+  const params = useParams();
+  const router = useRouter();
+  const workoutType = params.type as string;
+  
+  const [workoutTitle, setWorkoutTitle] = useState('Strength Workout');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [workoutSteps, setWorkoutSteps] = useState<WorkoutStep[]>([
+    {
+      exercise_id: 3,
+      exercise_name: 'Squat',
+      reps: 10,
+      order_index: 1
+    }
+  ]);
+
+  // Function to format workout type for display
+  const formatWorkoutType = (type: string) => {
+    if (type === 'strength_training') return 'Strength Training';
+    return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
+  };
+
+  // Function to go back to workouts page
+  const handleGoBack = () => {
+    router.push('/workouts');
+  };
+
+  // Function to handle title edit
+  const handleTitleEdit = () => {
+    setIsEditingTitle(true);
+  };
+
+  // Function to save title
+  const handleTitleSave = () => {
+    setIsEditingTitle(false);
+  };
+
+  // Function to handle title change
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWorkoutTitle(e.target.value);
+  };
+
+  // Function to handle key press in title input
+  const handleTitleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleTitleSave();
+    }
+  };
+
+  const handleSaveWorkout = async () => {
+    if (!workoutTitle.trim()) {
+      alert('Please enter a workout title');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const supabase = createClient();
+      
+      // Create workout with steps as JSONB
+      const workoutData = {
+        workout_name: workoutTitle,
+        steps: workoutSteps.map((step, index) => ({
+          ...step,
+          order_index: index + 1
+        }))
+      };
+      
+      const { data: workout, error } = await supabase
+        .from('workouts_table')
+        .insert(workoutData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Redirect to workouts page
+      router.push('/workouts');
+      
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      alert('Failed to save workout. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="w-full h-full">
+      <div className="w-full space-y-6 p-6">
+        {/* Header with back button */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleGoBack} className="p-2">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">WORKOUTS</h1>
+          </div>
+        </div>
+
+        {/* Workout Title Section */}
+        <div className="flex items-center gap-3">
+          {/* Dumbbell Icon */}
+          <div className="p-2 border rounded-full">
+            <Dumbbell className="h-5 w-5" />
+          </div>
+          
+          {/* Editable Title */}
+          <div className="flex items-center gap-2">
+            {isEditingTitle ? (
+              <Input
+                value={workoutTitle}
+                onChange={handleTitleChange}
+                onKeyPress={handleTitleKeyPress}
+                onBlur={handleTitleSave}
+                className="text-2xl font-bold border-none p-0 h-auto focus-visible:ring-0"
+                autoFocus
+              />
+            ) : (
+              <h2 className="text-2xl font-bold">{workoutTitle}</h2>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleTitleEdit}
+              className="h-6 w-6 p-0 hover:bg-gray-100"
+            >
+              <Edit3 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-4">
+          <Button variant="outline" onClick={handleGoBack}>
+            Cancel
+          </Button>
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700" 
+            onClick={handleSaveWorkout}
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save Workout'}
+          </Button>
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-gray-200"></div>
+
+        {/* Default Exercise Step */}
+        <Card className="border-l-4 border-l-blue-600">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between">
+              {/* Left side with drag handle and title */}
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 cursor-grab">
+                  <GripVertical className="h-4 w-4 text-gray-400" />
+                </Button>
+                <div>
+                  <h3 className="font-medium">Exercise</h3>
+                </div>
+              </div>
+              
+              {/* Right side with actions */}
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Info className="h-4 w-4 text-blue-600" />
+                </Button>
+                <span className="text-blue-600 text-sm cursor-pointer hover:underline">
+                  Select an exercise
+                </span>
+                <span className="text-blue-600 text-sm cursor-pointer hover:underline">
+                  Edit Step
+                </span>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-red-500 hover:text-red-700">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Exercise details */}
+            <div className="mt-4 flex items-center gap-8">
+              <div>
+                <div className="text-2xl font-bold">Squat</div>
+                <div className="text-sm text-gray-500">Exercise</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">10 Reps</div>
+                <div className="text-sm text-gray-500">Target</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Additional Action Buttons */}
+        <div className="flex gap-4">
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Step
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Add Sets
+          </Button>
+        </div>
+
+        {/* Add Note Link */}
+        <div className="text-blue-600 text-sm cursor-pointer hover:underline">
+          Add Note
+        </div>
+
+        {/* Disclaimer */}
+        <div className="text-sm text-gray-500 mt-8">
+          Simplu will store your workout for you to use on your device or in Supabase and will not share it with others.
+        </div>
+      </div>
+    </div>
+  );
+}
