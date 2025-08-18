@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit3, Info, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
 import { WorkoutStep } from '@/types/workout';
 import { createClient } from '@/lib/supabase/client';

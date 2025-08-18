@@ -16,12 +16,6 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { 
   Select,
   SelectContent,
   SelectItem,
@@ -37,7 +31,6 @@ import {
 import { 
   Calendar,
   Edit2, 
-  MoreHorizontal,
   Plus,
   Activity,
   Trash2,
