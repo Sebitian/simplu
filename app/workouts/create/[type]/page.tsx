@@ -40,14 +40,16 @@ export default function CreateWorkoutPage() {
   };
 
   // Function to handle title change
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setWorkoutTitle(e.target.value);
   };
 
   // Function to handle key press in title input
-  const handleTitleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       handleTitleSave();
+    } else if (e.key === 'Escape') {
+      setIsEditingTitle(false);
     }
   };
 
@@ -113,12 +115,12 @@ export default function CreateWorkoutPage() {
           {/* Editable Title */}
           <div className="flex items-center gap-2">
             {isEditingTitle ? (
-              <Input
+              <input
+                type="text"
                 value={workoutTitle}
                 onChange={handleTitleChange}
-                onKeyPress={handleTitleKeyPress}
-                onBlur={handleTitleSave}
-                className="text-2xl font-bold border-none p-0 h-auto focus-visible:ring-0"
+                onKeyDown={handleTitleKeyDown}
+                className="text-2xl font-bold border-none p-0 h-auto focus:outline-none bg-transparent min-w-[200px]"
                 autoFocus
               />
             ) : (

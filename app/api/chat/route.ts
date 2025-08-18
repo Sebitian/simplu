@@ -60,21 +60,13 @@ export async function POST(req: Request) {
     const userQuery = lastMessage.parts[0]?.type === 'text' ? lastMessage.parts[0].text : '';   
 
     // Check if the user is asking about workouts
-    if (userQuery.toLowerCase().includes('workout') || 
-        userQuery.toLowerCase().includes('exercise') ||
-        userQuery.toLowerCase().includes('training')) {
+    if (userQuery.toLowerCase().includes('workout')) {
         
         try {
             // Query Supabase for workout data
             const { data: workouts, error } = await supabase
-                .from('WORKOUTS')
-                .select(`
-                *,
-                STEPS (
-                    *,
-                    EXERCISES (*)
-                )
-                `)
+                .from('workouts_table')
+                .select(`*`)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

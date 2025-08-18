@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -35,10 +36,13 @@ import {
 } from '@/components/ui/tabs';
 import { 
   Calendar,
-  Edit3,
+  Edit2, 
   MoreHorizontal,
   Plus,
-  Activity
+  Activity,
+  Trash2,
+  X,
+  ChevronDown
 } from 'lucide-react';
 import { WorkoutStep } from '@/types/workout';
 // Import the sleep data statically
@@ -140,15 +144,20 @@ function logSleepScores(): void {
 
 export default function WorkoutsPage() {
   const router = useRouter();
-  const [selectedWorkoutType, setSelectedWorkoutType] = React.useState<string>('');
+  const [selectedWorkoutType, setSelectedWorkoutType] = useState<string>('');
   
   // Add state for workouts and loading
-  const [workouts, setWorkouts] = React.useState<UIWorkout[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [workouts, setWorkouts] = useState<UIWorkout[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Add state for delete confirmation modal
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   // Function to fetch workouts from Supabase
-  const fetchWorkouts = React.useCallback(async () => {
+  const fetchWorkouts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -185,7 +194,7 @@ export default function WorkoutsPage() {
   }, []);
 
   // Update useEffect to fetch workouts and log sleep scores
-  React.useEffect(() => {
+  useEffect(() => {
     logSleepScores();
     fetchWorkouts();
   }, [fetchWorkouts]);
@@ -211,6 +220,61 @@ export default function WorkoutsPage() {
       const urlType = workoutTypeMap[selectedWorkoutType] || selectedWorkoutType;
       router.push(`/workouts/create/${urlType}`);
     }
+  };
+
+  // Function to handle edit workout button click
+  const handleEditWorkout = (workoutId: string) => {
+    router.push(`/workouts/edit/${workoutId}`);
+  };
+
+  // Function to handle delete workout button click - shows confirmation modal
+  const handleDeleteWorkout = (workoutId: string) => {
+    setWorkoutToDelete(workoutId);
+    setDeleteModalOpen(true);
+  };
+
+  // Function to confirm workout deletion
+  const confirmDeleteWorkout = async () => {
+    if (!workoutToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      const supabase = createClient();
+      
+      // Delete the workout
+      const { error: deleteError } = await supabase
+        .from('workouts_table')
+        .delete()
+        .eq('id', workoutToDelete);
+
+      if (deleteError) throw deleteError;
+
+      // Reset the ID sequence to the next available ID
+      const { error: resetError } = await supabase.rpc('reset_workout_sequence');
+      
+      if (resetError) {
+        console.warn('Could not reset sequence:', resetError);
+        // Continue anyway - deletion was successful
+      }
+
+      // Remove the workout from local state
+      setWorkouts(prev => prev.filter(workout => workout.id !== workoutToDelete));
+      
+      // Close modal and reset state
+      setDeleteModalOpen(false);
+      setWorkoutToDelete(null);
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      setError('Failed to delete workout');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Function to cancel workout deletion
+  const cancelDeleteWorkout = () => {
+    setDeleteModalOpen(false);
+    setWorkoutToDelete(null);
   };
 
   return (
@@ -248,8 +312,9 @@ export default function WorkoutsPage() {
             {/* Controls Bar */}
             <div className="flex items-center">
               <Select onValueChange={setSelectedWorkoutType} value={selectedWorkoutType}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[225px]">
                   <SelectValue placeholder="Select a workout type..." />
+                  <ChevronDown className="ml-auto" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="strength">Strength Training</SelectItem>
@@ -323,8 +388,13 @@ export default function WorkoutsPage() {
                           <TableRow key={workout.id}>
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                  <Edit3 className="h-3 w-3" />
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleEditWorkout(workout.id)}
+                                >
+                                  <Edit2 className="h-3 w-3" />
                                 </Button>
                                 <span className="text-blue-600 cursor-pointer hover:underline">
                                   {workout.name}
@@ -344,27 +414,10 @@ export default function WorkoutsPage() {
                             <TableCell>{workout.created}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1">
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <Activity className="h-4 w-4" />
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
+                                  onClick={() => handleDeleteWorkout(workout.id)}>
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <Calendar className="h-4 w-4" />
-                                </Button>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>Edit Workout</DropdownMenuItem>
-                                    <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                    <DropdownMenuItem>View History</DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive">
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -423,6 +476,47 @@ export default function WorkoutsPage() {
           </TabsContent>
         </Tabs>
       </div>
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold uppercase text-gray-900 dark:text-white">DELETE WORKOUT</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={cancelDeleteWorkout}
+                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </Button>
+            </div>
+            
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete your workout? This cannot be undone.
+            </p>
+            
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={cancelDeleteWorkout}
+                disabled={isDeleting}
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteWorkout}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
