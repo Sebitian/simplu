@@ -61,7 +61,6 @@ export async function POST(req: Request) {
 
     // Check if the user is asking about workouts
     if (userQuery.toLowerCase().includes('workout')) {
-        
         try {
             // Query Supabase for workout data
             const { data: workouts, error } = await supabase
