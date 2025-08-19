@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Edit3, Info, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
-import { WorkoutStep } from '@/types/workout';
+import { ArrowLeft, Edit3, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
+import { WorkoutStep, StepFormData } from '@/types/workout';
 import { createClient } from '@/lib/supabase/client';
 
 export default function CreateWorkoutPage() {
@@ -23,7 +23,7 @@ export default function CreateWorkoutPage() {
     }
   ]);
   const [expandedStepIndex, setExpandedStepIndex] = useState<number | null>(null);
-  const [formData, setFormData] = useState<{[key: number]: any}>({});
+  const [formData, setFormData] = useState<{[key: number]: StepFormData}>({});
 
   // Function to go back to workouts page
   const handleGoBack = () => {
@@ -116,7 +116,7 @@ export default function CreateWorkoutPage() {
   };
 
   // Function to update form data
-  const updateFormData = (stepIndex: number, field: string, value: any) => {
+  const updateFormData = (stepIndex: number, field: keyof StepFormData, value: string | number) => {
     setFormData({
       ...formData,
       [stepIndex]: {
@@ -133,8 +133,8 @@ export default function CreateWorkoutPage() {
     updatedSteps[stepIndex] = {
       ...updatedSteps[stepIndex],
       exercise_name: data.exerciseName,
-      reps: parseInt(data.targetValue) || 0,
-      weight_lbs: data.weightType === 'Fixed' ? parseInt(data.weightValue) || undefined : undefined
+      reps: parseInt(data.targetValue as string) || 0,
+      weight_lbs: data.weightType === 'Fixed' ? parseInt(data.weightValue as string) || undefined : undefined
     };
     setWorkoutSteps(updatedSteps);
     setExpandedStepIndex(null);

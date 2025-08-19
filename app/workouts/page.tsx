@@ -37,73 +37,9 @@ import {
   X,
   ChevronDown
 } from 'lucide-react';
-import { WorkoutStep } from '@/types/workout';
 // Import the sleep data statically
 import sleepDataJson from '@/garmin/sebastian/DI_CONNECT/DI-Connect-Wellness/2025-04-13_2025-07-22_129258466_sleepData.json';
-
-// Define interfaces for sleep data
-interface SleepScores {
-  overallScore: number;
-  qualityScore: number;
-  durationScore: number;
-  recoveryScore: number;
-  deepScore?: number;
-  remScore?: number;
-  lightScore?: number;
-  awakeningsCountScore?: number;
-  awakeTimeScore?: number;
-  combinedAwakeScore?: number;
-  restfulnessScore?: number;
-  interruptionsScore?: number;
-  feedback: string;
-  insight: string;
-}
-
-interface SleepEntry {
-  calendarDate?: string;
-  sleepScores?: SleepScores;
-  retro?: boolean;
-  sleepStartTimestampGMT?: string;
-  sleepEndTimestampGMT?: string;
-  sleepWindowConfirmationType?: string;
-  deepSleepSeconds?: number;
-  lightSleepSeconds?: number;
-  remSleepSeconds?: number;
-  awakeSleepSeconds?: number;
-  unmeasurableSeconds?: number;
-  averageRespiration?: number;
-  lowestRespiration?: number;
-  highestRespiration?: number;
-  awakeCount?: number;
-  avgSleepStress?: number;
-  restlessMomentCount?: number;
-}
-
-interface ProcessedSleepEntry {
-  date: string;
-  overallScore: number;
-  qualityScore: number;
-  durationScore: number;
-  recoveryScore: number;
-  feedback: string;
-  insight: string;
-}
-
-interface DatabaseWorkout {
-  id: number;
-  workout_name: string;
-  steps: WorkoutStep[];
-  created_at: string;
-}
-
-interface UIWorkout {
-  id: string;
-  name: string;
-  activityType: string;
-  duration: string;
-  edited: string;
-  created: string;
-}
+import { SleepEntry, ProcessedSleepEntry, DatabaseWorkout, UIWorkout } from '@/types/workout';
 
 // Function to parse Garmin sleep data and extract overall scores
 function parseSleepData(): ProcessedSleepEntry[] {

@@ -3,34 +3,9 @@ import { convertToModelMessages, streamText, UIMessage } from 'ai';
 import { createClient } from '@/lib/supabase/server';
 // Import the sleep data statically
 import sleepDataJson from '@/garmin/sebastian/DI_CONNECT/DI-Connect-Wellness/2025-04-13_2025-07-22_129258466_sleepData.json';
-
+import { SleepEntry, ProcessedSleepEntry } from '@/types/workout';
 export const maxDuration = 30;
 
-// Define interfaces for sleep data (same as in workouts page)
-interface SleepScores {
-  overallScore: number;
-  qualityScore: number;
-  durationScore: number;
-  recoveryScore: number;
-  feedback: string;
-  insight: string;
-}
-
-interface SleepEntry {
-  calendarDate?: string;
-  sleepScores?: SleepScores;
-  retro?: boolean;
-}
-
-interface ProcessedSleepEntry {
-  date: string;
-  overallScore: number;
-  qualityScore: number;
-  durationScore: number;
-  recoveryScore: number;
-  feedback: string;
-  insight: string;
-}
 
 function parseSleepData(): ProcessedSleepEntry[] {
     const sleepData = sleepDataJson as SleepEntry[];

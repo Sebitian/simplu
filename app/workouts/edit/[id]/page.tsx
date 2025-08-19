@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Edit3, Info, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
-import { WorkoutStep } from '@/types/workout';
+import { WorkoutStep, StepFormData } from '@/types/workout';
 import { createClient } from '@/lib/supabase/client';
 
 export default function EditWorkoutPage() {
@@ -21,7 +21,7 @@ export default function EditWorkoutPage() {
   
   // Add these new states for the expandable functionality
   const [expandedStepIndex, setExpandedStepIndex] = useState<number | null>(null);
-  const [formData, setFormData] = useState<{[key: number]: any}>({});
+  const [formData, setFormData] = useState<{[key: number]: StepFormData}>({});
 
   // Function to load existing workout data
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function EditWorkoutPage() {
     }
   };
 
-  const updateFormData = (stepIndex: number, field: string, value: any) => {
+  const updateFormData = (stepIndex: number, field: keyof StepFormData, value: string | number) => {
     setFormData({
       ...formData,
       [stepIndex]: {
@@ -157,8 +157,8 @@ export default function EditWorkoutPage() {
     updatedSteps[stepIndex] = {
       ...updatedSteps[stepIndex],
       exercise_name: data.exerciseName,
-      reps: parseInt(data.targetValue) || 0,
-      weight_lbs: data.weightType === 'Fixed' ? parseInt(data.weightValue) || undefined : undefined
+      reps: parseInt(data.targetValue as string) || 0,
+      weight_lbs: data.weightType === 'Fixed' ? parseInt(data.weightValue as string) || undefined : undefined
     };
     setWorkoutSteps(updatedSteps);
     setExpandedStepIndex(null);
