@@ -26,6 +26,9 @@ export async function Navbar() {
               <Link href={"/test-google"} className="hover:underline">
                 Chat
               </Link>
+              <Link href={"/charts"} className="hover:underline">
+                Charts
+              </Link>
             </div>
             <div className="flex gap-4 items-center">
               <LogoutButton />
