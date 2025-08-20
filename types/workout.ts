@@ -4,6 +4,7 @@ export interface WorkoutStep {
   reps: number;
   weight_lbs?: number;
   order_index: number;
+  notes?: string;
 }
 
 export interface Workout {
