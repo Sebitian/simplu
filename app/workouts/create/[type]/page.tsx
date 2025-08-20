@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Edit3, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
+import { Edit3, Trash2, GripVertical, Plus, RotateCcw, Dumbbell } from 'lucide-react';
 import { WorkoutStep, StepFormData } from '@/types/workout';
 import { createClient } from '@/lib/supabase/client';
 
@@ -208,9 +208,9 @@ export default function CreateWorkoutPage() {
       <div className="w-full space-y-6 p-6">
         {/* Header with back button */}
         <div className="flex items-center gap-4">
-          {/* <Button variant="ghost" onClick={handleGoBack} className="p-2">
-            <ArrowLeft className="h-4 w-4" />
-          </Button> */}
+          <Button variant="ghost" onClick={handleGoBack} className="p-2">
+            ←
+          </Button>
           <div>
             <h1 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">WORKOUTS</h1>
           </div>
@@ -486,8 +486,8 @@ export default function CreateWorkoutPage() {
           <Card className="border-l-4 border-l-blue-600">
             <CardContent className="p-4">
               <div className="text-center py-8">
-                <div className="text-gray-500 text-lg">You haven't added any steps yet</div>
-                <div className="text-gray-400 text-sm mt-2">Use the "Add Step" button below to get started</div>
+                <div className="text-gray-500 text-lg">You haven&apos;t added any steps yet</div>
+                <div className="text-gray-400 text-sm mt-2">Use the &quot;Add Step&quot; button below to get started</div>
               </div>
             </CardContent>
           </Card>
